@@ -223,7 +223,7 @@ end
 
 """
 Compute all nodes in the computational graph.
-Return the number of calls of compute_computable_nodes!.
+Return the number of nodes computed.
 """
 function compute_all_nodes!(
     obj::ComputationalGraph{K,N}; callgc=true, distributed=false
@@ -242,7 +242,7 @@ function compute_all_nodes!(
         if computed_count == 0
             break
         end
-        count += 1
+        count += computed_count
     end
     return count
 end

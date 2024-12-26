@@ -81,7 +81,7 @@ import ComputationalGraphs as CG
             cg, "C"; dependencies=["A", "B"], computefunc=x -> sum(values(x))
         )
 
-        @test CG.compute_all_nodes!(cg) == 2
+        @test CG.compute_all_nodes!(cg) == 3
         @test cg.nodevalue["C"] == 6.0 # A + B = 3 + 3 = 6
         @test cg.nodevalue["A"] === nothing
         @test cg.nodevalue["B"] === nothing
@@ -105,7 +105,7 @@ import ComputationalGraphs as CG
             )
         end
 
-        @test CG.compute_all_nodes!(cg; distributed=true) == 1
+        @test CG.compute_all_nodes!(cg; distributed=true) == N
         @test all([
             cg.nodevalue["C$n"] == cg.nodevalue["A$n"] + cg.nodevalue["B$n"] for n in 1:N
         ])
