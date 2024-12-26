@@ -1,20 +1,20 @@
-using PartitionedMPSs
+using ComputationalGraphs
 using Documenter
 
 DocMeta.setdocmeta!(
-    PartitionedMPSs, :DocTestSetup, :(using PartitionedMPSs); recursive=true
+    ComputationalGraphs, :DocTestSetup, :(using ComputationalGraphs); recursive=true
 )
 
 makedocs(;
-    modules=[PartitionedMPSs],
+    modules=[ComputationalGraphs],
     authors="Hiroshi Shinaoka <h.shinaoka@gmail.com> and contributors",
-    sitename="PartitionedMPSs.jl",
+    sitename="ComputationalGraphs.jl",
     format=Documenter.HTML(;
-        canonical="https://github.com/tensor4all/PartitionedMPSs.jl",
+        canonical="https://github.com/tensor4all/ComputationalGraphs.jl",
         edit_link="main",
         assets=String[],
     ),
     pages=["Home" => "index.md"],
 )
 
-deploydocs(; repo="github.com/tensor4all/PartitionedMPSs.jl.git", devbranch="main")
+deploydocs(; repo="github.com/tensor4all/ComputationalGraphs.jl.git", devbranch="main")

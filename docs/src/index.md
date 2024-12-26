@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = PartitionedMPSs
+CurrentModule = ComputationalGraphs
 ```
 
-# PartitionedMPSs
+# ComputationalGraphs
 
-Documentation for [PartitionedMPSs](https://github.com/tensor4all/PartitionedMPSs.jl).
+Documentation for [ComputationalGraphs](https://github.com/tensor4all/ComputationalGraphs.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [PartitionedMPSs]
+Modules = [ComputationalGraphs]
 ```
