@@ -10,21 +10,31 @@ struct ComputationalGraph{K,N}
     disabled_nodes::Set{K} # unassigned intermediate nodes
 
     function ComputationalGraph{K,N}(name::K...) where {K,N}
-        new(NamedDiGraph{K}(), Dict{K,Function}(), Dict{K,Union{Nothing,N}}(), Set{K}(), Set{K}())
+        return new(
+            NamedDiGraph{K}(),
+            Dict{K,Function}(),
+            Dict{K,Union{Nothing,N}}(),
+            Set{K}(),
+            Set{K}(),
+        )
     end
 end
 
 """
 Add a node to the computational graph.
 """
-function add_node!(obj::ComputationalGraph{K,N}, node::K, nodevalue::Union{N,Nothing}=nothing; is_intermediate=false) where {K,N}
+function add_node!(
+    obj::ComputationalGraph{K,N},
+    node::K,
+    nodevalue::Union{N,Nothing}=nothing;
+    is_intermediate=false,
+) where {K,N}
     add_vertex!(obj.graph, node)
     obj.nodevalue[node] = nodevalue
     if is_intermediate
         push!(obj.intermediate_nodes, node)
     end
 end
-
 
 """
 Find all nodes reachable from a starting node in a directed graph using depth-first search.
@@ -54,7 +64,6 @@ function reachable_nodes(g::NamedDiGraph, start_node::K)::Vector{K} where {K}
     return collect(visited)
 end
 
-
 """
 Update the value of a node and invalidate all dependent nodes.
 
@@ -75,11 +84,15 @@ function update_node_value!(obj::ComputationalGraph{K,N}, node::K, nodevalue::N)
     end
 end
 
-
 """
 Add a dependency to a node in the computational graph.
 """
-function add_dependency!(obj::ComputationalGraph{K,N}, node::K; computefunc::Function=x -> nothing, dependencies=K[]) where {K,N}
+function add_dependency!(
+    obj::ComputationalGraph{K,N},
+    node::K;
+    computefunc::Function=x -> nothing,
+    dependencies=K[],
+) where {K,N}
     obj.computefunc[node] = computefunc
     for src in dependencies
         add_edge!(obj.graph, src, node)
@@ -91,12 +104,12 @@ Return if a node is computable, i.e., all its dependencies have been computed.
 """
 function is_computable(obj::ComputationalGraph{K,N}, node::K)::Bool where {K,N}
     #if !(node ∈ keys(obj.dependencies))
-        #return true
+    #return true
     #end
     if length(inneighbors(obj.graph, node)) == 0
         return true
     end
-    all(is_computed(obj, node_) for node_ in inneighbors(obj.graph, node))
+    return all(is_computed(obj, node_) for node_ in inneighbors(obj.graph, node))
 end
 
 """
@@ -111,7 +124,10 @@ Get the computable nodes in the computational graph.
 Ignore nodes that are already computed or assigned a value.
 """
 function get_computable_nodes(obj::ComputationalGraph{K,N})::Vector{K} where {K,N}
-    return [v for v in vertices(obj.graph) if is_computable(obj, v) && !is_computed(obj, v) && v ∉ obj.disabled_nodes]
+    return [
+        v for v in vertices(obj.graph) if
+        is_computable(obj, v) && !is_computed(obj, v) && v ∉ obj.disabled_nodes
+    ]
 end
 
 """
@@ -148,7 +164,7 @@ Return the number of unassigned nodes.
 function unassign_intermediate_nodes!(obj::ComputationalGraph{K,N})::Int where {K,N}
     count = 0
     for node in obj.intermediate_nodes
-        if (is_computed(obj, dstnode) for dstnode in outneighbors(obj.graph, node)) |> all
+        if all((is_computed(obj, dstnode) for dstnode in outneighbors(obj.graph, node)))
             obj.nodevalue[node] = nothing
             push!(obj.disabled_nodes, node)
             count += 1

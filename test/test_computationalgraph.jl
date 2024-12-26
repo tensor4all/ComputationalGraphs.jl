@@ -7,7 +7,9 @@ import ComputationalGraphs as CG
         CG.add_node!(cg, "A", 1.0)
         CG.add_node!(cg, "B", 2.0)
         CG.add_node!(cg, "C")
-        CG.add_dependency!(cg, "C"; dependencies=["A", "B"], computefunc=x -> x["A"] + x["B"])
+        CG.add_dependency!(
+            cg, "C"; dependencies=["A", "B"], computefunc=x -> x["A"] + x["B"]
+        )
 
         @test CG.is_computable(cg, "C") == true
         @test CG.get_computable_nodes(cg) == ["C"]
@@ -30,9 +32,15 @@ import ComputationalGraphs as CG
         CG.add_node!(cg, "B"; is_intermediate=true)
         CG.add_node!(cg, "C")
 
-        CG.add_dependency!(cg, "A"; dependencies=["A1", "A2"], computefunc=x -> sum(values(x)))
-        CG.add_dependency!(cg, "B"; dependencies=["B1", "B2"], computefunc=x -> sum(values(x)))
-        CG.add_dependency!(cg, "C"; dependencies=["A", "B"], computefunc=x -> sum(values(x)))
+        CG.add_dependency!(
+            cg, "A"; dependencies=["A1", "A2"], computefunc=x -> sum(values(x))
+        )
+        CG.add_dependency!(
+            cg, "B"; dependencies=["B1", "B2"], computefunc=x -> sum(values(x))
+        )
+        CG.add_dependency!(
+            cg, "C"; dependencies=["A", "B"], computefunc=x -> sum(values(x))
+        )
 
         @test CG.is_computable(cg, "A") == true
         @test CG.is_computable(cg, "B") == true
@@ -53,7 +61,6 @@ import ComputationalGraphs as CG
         @test cg.nodevalue["B"] === nothing
     end
 
-
     @testset "C <= (A1 + A2) + (B1 + B2), compute_all_nodes!" begin
         cg = CG.ComputationalGraph{Any,Float64}()
         CG.add_node!(cg, "A1", 1.0)
@@ -64,14 +71,19 @@ import ComputationalGraphs as CG
         CG.add_node!(cg, "B"; is_intermediate=true)
         CG.add_node!(cg, "C")
 
-        CG.add_dependency!(cg, "A"; dependencies=["A1", "A2"], computefunc=x -> sum(values(x)))
-        CG.add_dependency!(cg, "B"; dependencies=["B1", "B2"], computefunc=x -> sum(values(x)))
-        CG.add_dependency!(cg, "C"; dependencies=["A", "B"], computefunc=x -> sum(values(x)))
+        CG.add_dependency!(
+            cg, "A"; dependencies=["A1", "A2"], computefunc=x -> sum(values(x))
+        )
+        CG.add_dependency!(
+            cg, "B"; dependencies=["B1", "B2"], computefunc=x -> sum(values(x))
+        )
+        CG.add_dependency!(
+            cg, "C"; dependencies=["A", "B"], computefunc=x -> sum(values(x))
+        )
 
         @test CG.compute_all_nodes!(cg) == 2
         @test cg.nodevalue["C"] == 6.0 # A + B = 3 + 3 = 6
         @test cg.nodevalue["A"] === nothing
         @test cg.nodevalue["B"] === nothing
     end
-end
-;
+end;
