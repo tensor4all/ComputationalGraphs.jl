@@ -86,4 +86,28 @@ import ComputationalGraphs as CG
         @test cg.nodevalue["A"] === nothing
         @test cg.nodevalue["B"] === nothing
     end
+
+    @testset "pmap" begin
+        cg = CG.ComputationalGraph{Any,Float64}()
+
+        N = 24
+
+        for n in 1:N
+            CG.add_node!(cg, "A$n", 1.0)
+            CG.add_node!(cg, "B$n", 1.0)
+            CG.add_node!(cg, "C$n")
+
+            CG.add_dependency!(
+                cg,
+                "C$n";
+                dependencies=["A$n", "B$n"],
+                computefunc=x -> (sleep(0.1); sum(values(x))),
+            )
+        end
+
+        @test CG.compute_all_nodes!(cg; distributed=true) == 1
+        @test all([
+            cg.nodevalue["C$n"] == cg.nodevalue["A$n"] + cg.nodevalue["B$n"] for n in 1:N
+        ])
+    end
 end;

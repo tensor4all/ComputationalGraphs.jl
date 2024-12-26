@@ -158,6 +158,54 @@ function compute_computable_nodes!(obj::ComputationalGraph{K,N})::Int where {K,N
 end
 
 """
+Prepare minimal data (dependencies' values + computefunc) for a node.
+"""
+function compute_node_data(
+    obj::ComputationalGraph{K,N}, node::K
+)::Tuple{Dict{K,N},Function} where {K,N}
+    # Check if node is computable
+    if !is_computable(obj, node)
+        error("Node $node is not computable")
+    end
+    # Get dependency nodes
+    dependencies = inneighbors(obj.graph, node)
+    # Collect values of dependency nodes (Dict{depnode => value})
+    args = Dict(depnode => obj.nodevalue[depnode] for depnode in dependencies)
+    # Get function to execute
+    func = obj.computefunc[node]
+    # Return tuple of (dependency node values, function)
+    return (args, func)
+end
+
+function _compute_node_remote(args::Dict{K,N}, func::Function) where {K,N}
+    # Small function to execute on worker nodes
+    return func(args)
+end
+
+"""
+Like compute_computable_nodes!, but computes nodes in parallel using distributed workers.
+Returns the number of computed nodes.
+"""
+function compute_computable_nodes_pmap!(obj::ComputationalGraph{K,N})::Int where {K,N}
+    computable_nodes = get_computable_nodes(obj)
+
+    @show length(computable_nodes)
+    # Create (args, func) and pmap them
+    # Only (args, func) are transferred to workers
+    results = pmap(node -> begin
+        (args, f) = compute_node_data(obj, node)   # Generate minimal data locally
+        _compute_node_remote(args, f)               # Execute on worker
+    end, computable_nodes)
+
+    # Update obj.nodevalue[node] with results returned from workers
+    for (i, node) in enumerate(computable_nodes)
+        obj.nodevalue[node] = results[i]
+    end
+
+    return length(results)
+end
+
+"""
 Unassigned all unneseccary intermediate nodes from the computational graph.
 Return the number of unassigned nodes.
 """
@@ -177,10 +225,16 @@ end
 Compute all nodes in the computational graph.
 Return the number of calls of compute_computable_nodes!.
 """
-function compute_all_nodes!(obj::ComputationalGraph{K,N}; callgc=true)::Int where {K,N}
+function compute_all_nodes!(
+    obj::ComputationalGraph{K,N}; callgc=true, distributed=false
+)::Int where {K,N}
     count = 0
     while true
-        computed_count = compute_computable_nodes!(obj)
+        computed_count = if distributed
+            compute_computable_nodes_pmap!(obj)
+        else
+            compute_computable_nodes!(obj)
+        end
         unassign_intermediate_nodes!(obj)
         if callgc
             GC.gc()
